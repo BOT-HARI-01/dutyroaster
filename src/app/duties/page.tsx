@@ -1,7 +1,7 @@
 "use client";
 import type { ColumnDef } from "@tanstack/react-table";
 import { CheckSquare, Eye, Loader2, Pencil, Plus, Shuffle, X } from "lucide-react";
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { DataTable } from "@/components/DataTable";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,6 +22,7 @@ const STATUS_BADGE: Record<string, string> = { "Draft": "bg-gray-100 text-gray-6
 export default function DutiesPage() {
   const [duties, setDuties] = useState<Duty[]>([]);
   const [officers, setOfficers] = useState<Officer[]>([]);
+  const [ranks, setRanks] = useState<string[]>([]);
   const [form, setForm] = useState(empty);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -37,11 +38,11 @@ export default function DutiesPage() {
   useEffect(() => { const f = (e: MouseEvent) => { if (officerRef.current && !officerRef.current.contains(e.target as Node)) setOfficerOpen(false); }; document.addEventListener("mousedown", f); return () => document.removeEventListener("mousedown", f); }, []);
 
   const filteredOfficers = officers.filter((o) => `${o.name} ${o.rank} ${o.belt_number}`.toLowerCase().includes(officerSearch.toLowerCase()));
-  const rankOptions = useMemo(() => [...new Set(officers.map((o) => o.rank).filter(Boolean))].sort(), [officers]);
 
   const load = () => api.duties().then((d) => setDuties(d.filter((d) => d.status !== "Cancelled"))).catch(console.error);
-  useEffect(() => { void load(); api.officers().then(setOfficers).catch(console.error); }, []);
-  useEffect(() => { if (showForm) api.officers().then(setOfficers).catch(console.error); }, [showForm]);
+  const fetchRanks = () => api.ranks().then(setRanks).catch(console.error);
+  useEffect(() => { void load(); api.officers().then(setOfficers).catch(console.error); fetchRanks(); }, []);
+  useEffect(() => { if (showForm) { api.officers().then(setOfficers).catch(console.error); fetchRanks(); } }, [showForm]);
 
   const allSelected = duties.length > 0 && selectedIds.size === duties.length;
   const toggleAll = () => setSelectedIds(allSelected ? new Set() : new Set(duties.map((d) => d.id)));
@@ -169,7 +170,7 @@ export default function DutiesPage() {
               <div className="flex flex-col gap-1"><label className="text-xs font-medium text-stone-500">End Time</label><Input type="time" value={form.end_time} onChange={(e) => setForm({ ...form, end_time: e.target.value })} /></div>
               <div className="flex flex-col gap-1"><label className="text-xs font-medium text-stone-500">Shift</label><Select value={form.shift_type} onChange={(e) => setForm({ ...form, shift_type: e.target.value })}><option>Morning</option><option>Evening</option><option>Night</option><option>Custom</option></Select></div>
               <div className="flex flex-col gap-1"><label className="text-xs font-medium text-stone-500">Officers Required</label><Input type="number" min={1} value={form.required_officers} onChange={(e) => setForm({ ...form, required_officers: Number(e.target.value) })} /></div>
-              <div className="flex flex-col gap-1"><label className="text-xs font-medium text-stone-500">Required Rank</label><Select value={form.required_rank} onChange={(e) => setForm({ ...form, required_rank: e.target.value })}><option value="">Any rank</option>{rankOptions.map((r) => <option key={r}>{r}</option>)}</Select></div>
+              <div className="flex flex-col gap-1"><label className="text-xs font-medium text-stone-500">Required Rank</label><Select value={form.required_rank} onChange={(e) => setForm({ ...form, required_rank: e.target.value })}><option value="">Any rank</option>{ranks.map((r) => <option key={r}>{r}</option>)}</Select></div>
               <div className="flex flex-col gap-1" ref={officerRef}>
                 <label className="text-xs font-medium text-stone-500">In-charge Officer</label>
                 <div className="relative">
