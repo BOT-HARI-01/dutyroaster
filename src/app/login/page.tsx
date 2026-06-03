@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 function LoginForm() {
   const { login } = useAuth();
@@ -65,9 +65,5 @@ function LoginForm() {
 }
 
 export default function LoginPage() {
-  return (
-    <AuthProvider>
-      <LoginForm />
-    </AuthProvider>
-  );
+  return <LoginForm />;
 }
