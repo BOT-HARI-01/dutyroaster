@@ -1,6 +1,6 @@
 "use client";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Trash2 } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { DataTable } from "@/components/DataTable";
 import { Button } from "@/components/ui/button";
@@ -27,8 +27,9 @@ export default function OfficersPage() {
   const [form, setForm] = useState(empty);
   const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const load = () => api.officers().then(setOfficers).catch(console.error);
+  const load = () => { setLoading(true); api.officers().then(setOfficers).catch(console.error).finally(() => setLoading(false)); };
   useEffect(() => { void load(); }, []);
 
   const columns = useMemo<ColumnDef<Officer>[]>(() => [
@@ -115,7 +116,13 @@ export default function OfficersPage() {
           </CardContent>
         </Card>
       )}
-      <DataTable data={officers} columns={columns} searchPlaceholder="Search by name, belt number, rank, station…" />
+      {loading ? (
+        <div className="flex items-center justify-center py-20 text-stone-400">
+          <Loader2 className="h-5 w-5 animate-spin mr-2" /> Fetching officers…
+        </div>
+      ) : (
+        <DataTable data={officers} columns={columns} searchPlaceholder="Search by name, belt number, rank, station…" />
+      )}
     </div>
   );
 }
