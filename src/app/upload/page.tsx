@@ -12,18 +12,18 @@ const STEPS = [
 ];
 
 export default function ExcelUploadPage() {
-  const [imported, setImported] = useState<number | null>(null);
+  const [result, setResult] = useState<{ imported: number; skipped_no_belt: number; skipped_duplicate: number; total: number } | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function upload(file?: File) {
     if (!file) return;
-    setImported(null); setError(""); setLoading(true);
+    setResult(null); setError(""); setLoading(true);
     try {
       const form = new FormData();
       form.append("file", file);
-      const result = await api.uploadOfficers(form);
-      setImported(result.imported);
+      const res = await api.uploadOfficers(form);
+      setResult(res);
     } catch (err) { setError(`Upload failed: ${err}`); }
     finally { setLoading(false); }
   }
@@ -57,11 +57,18 @@ export default function ExcelUploadPage() {
             </label>
           </div>
           {error && <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
-          {imported !== null && (
+          {result && (
             <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-4 space-y-3">
               <div className="flex items-center gap-2 text-green-700 font-medium">
-                <CheckCircle className="h-5 w-5 text-green-500" /> Upload successful — {imported} officer{imported !== 1 ? "s" : ""} imported.
+                <CheckCircle className="h-5 w-5 text-green-500" /> Upload successful — {result.imported} officer{result.imported !== 1 ? "s" : ""} imported.
               </div>
+              {result.total > 0 && (
+                <div className="text-xs text-stone-500 space-y-0.5">
+                  <div>Total rows in file: {result.total}</div>
+                  {result.skipped_no_belt > 0 && <div className="text-amber-600">{result.skipped_no_belt} row{result.skipped_no_belt !== 1 ? "s" : ""} skipped (missing belt number / employee ID)</div>}
+                  {result.skipped_duplicate > 0 && <div className="text-amber-600">{result.skipped_duplicate} duplicate row{result.skipped_duplicate !== 1 ? "s" : ""} skipped (already exists)</div>}
+                </div>
+              )}
               <Button variant="primary" onClick={() => window.location.hash = "/officers"}><ListChecks className="h-4 w-4" /> View Officers</Button>
             </div>
           )}

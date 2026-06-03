@@ -9,7 +9,6 @@ import { Input, Select, Textarea } from "@/components/ui/input";
 import { api } from "@/lib/api";
 import type { Assignment, Duty, Officer } from "@/types/domain";
 
-const RANKS = ["Constable", "Head Constable", "SI", "CI", "DSP"];
 const today = new Date().toISOString().slice(0, 10);
 const DUTY_TYPES = ["Collector Banglow Guard", "Police Guest House Guard for DIG ATP", "S.P Camp Office Guard and Night Guard",
   "Armoury Guard (Bugler HC-01)", "DPO Main Gate Guard", "Treasury Guard Collectorate at ATP",
@@ -38,7 +37,7 @@ export default function DutiesPage() {
   useEffect(() => { const f = (e: MouseEvent) => { if (officerRef.current && !officerRef.current.contains(e.target as Node)) setOfficerOpen(false); }; document.addEventListener("mousedown", f); return () => document.removeEventListener("mousedown", f); }, []);
 
   const filteredOfficers = officers.filter((o) => `${o.name} ${o.rank} ${o.belt_number}`.toLowerCase().includes(officerSearch.toLowerCase()));
-  const rankOptions = useMemo(() => [...new Set([...RANKS, ...officers.map((o) => o.rank).filter(Boolean)])].sort(), [officers]);
+  const rankOptions = useMemo(() => [...new Set(officers.map((o) => o.rank).filter(Boolean))].sort(), [officers]);
 
   const load = () => api.duties().then((d) => setDuties(d.filter((d) => d.status !== "Cancelled"))).catch(console.error);
   useEffect(() => { void load(); api.officers().then(setOfficers).catch(console.error); }, []);

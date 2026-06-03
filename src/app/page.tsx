@@ -1,5 +1,5 @@
 "use client";
-import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState, Component, type ReactNode, type ErrorInfo } from "react";
 import {
   BarChart3, CalendarCheck, FileSpreadsheet, History,
@@ -118,9 +118,5 @@ function Shell() {
 }
 
 export default function App() {
-  return (
-    <AuthProvider>
-      <Shell />
-    </AuthProvider>
-  );
+  return <Shell />;
 }
